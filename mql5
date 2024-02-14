@@ -1,0 +1,66 @@
+
+//+------------------------------------------------------------------+
+//|                                              TRAMA by LuxAlgo.mq5 |
+//|                                      Copyright © 2021 Forex Robot Easy Team, forexroboteasy.com |
+//+------------------------------------------------------------------+
+#property copyright 'Copyright © 2021 Forex Robot Easy Team'
+#property link      'forexroboteasy.com'
+
+// Indicator input parameters
+input int period = 14;
+input int buffer_shift = 1;
+
+// Indicator buffers
+double tramaBuffer[];
+double mainLineBuffer[];
+
+//+------------------------------------------------------------------+
+//| Custom indicator initialization function                         |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Set indicator buffers
+    SetIndexBuffer(0, tramaBuffer, INDICATOR_DATA);
+    SetIndexBuffer(1, mainLineBuffer, INDICATOR_CALCULATIONS);
+
+    // Set indicator label
+    IndicatorSetString(INDICATOR_SHORTNAME, 'TRAMA by LuxAlgo');
+
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator iteration function                              |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+    // Check for available data
+    if(rates_total < period)
+        return(0);
+
+    // Calculate TRAMA values
+    for(int i = period; i < rates_total; i++)
+    {
+        double sum = 0.0;
+        for(int j = i - period + 1; j <= i; j++)
+            sum += close[j];
+
+        double trama = sum / period;
+        tramaBuffer[i] = trama;
+
+        // Calculate main line buffer
+        if(i >= period + buffer_shift)
+            mainLineBuffer[i - buffer_shift] = trama;
+    }
+
+    return(rates_total);
+}
